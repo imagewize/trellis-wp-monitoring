@@ -1,5 +1,10 @@
 # trellis-wp-monitoring
 
+[![CI](https://github.com/imagewize/trellis-wp-monitoring/actions/workflows/ci.yml/badge.svg)](https://github.com/imagewize/trellis-wp-monitoring/actions/workflows/ci.yml)
+[![Galaxy downloads](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fgalaxy.ansible.com%2Fapi%2Fv1%2Froles%2F%3Fowner__username%3Dimagewize%26name%3Dtrellis_wp_monitoring&query=%24.results%5B0%5D.download_count&label=galaxy%20downloads&color=blue&logo=ansible)](https://galaxy.ansible.com/ui/standalone/roles/imagewize/trellis_wp_monitoring/)
+[![Version](https://img.shields.io/github/v/tag/imagewize/trellis-wp-monitoring?label=version&color=blue)](https://github.com/imagewize/trellis-wp-monitoring/tags)
+[![License](https://img.shields.io/github/license/imagewize/trellis-wp-monitoring?color=blue)](LICENSE)
+
 Nginx log traffic analysis and attack detection for [Roots Trellis](https://roots.io/trellis/) servers, as an Ansible role.
 
 Installs two log analysers on the server, wraps them in per-site report
@@ -48,6 +53,9 @@ Install it:
 ```bash
 ansible-galaxy install -r galaxy.yml
 ```
+
+The `src:` URL means this installs whether or not you go through Ansible
+Galaxy's index — pinning `version:` to a tag is what makes it reproducible.
 
 Add it to `server.yml`, after the `wordpress-setup` role so the site log
 directories exist:
