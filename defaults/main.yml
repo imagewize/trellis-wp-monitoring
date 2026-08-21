@@ -1,0 +1,48 @@
+---
+# Which sites to monitor. Defaults to every site in the Trellis project.
+# Override in group_vars to monitor a subset:
+#
+#   wp_monitoring_sites:
+#     example.com: "{{ wordpress_sites['example.com'] }}"
+#
+wp_monitoring_sites: "{{ wordpress_sites }}"
+
+# Where the scripts, wrappers, and reports live on the server.
+wp_monitoring_dir: "/home/{{ web_user }}/monitoring"
+
+# Nginx access log to analyse, per site. Trellis writes a per-site log here;
+# point this elsewhere if you use a shared or custom log.
+wp_monitoring_log_file: "{{ www_root }}/{{ item.key }}/logs/access.log"
+
+# Where alerts and reports are mailed. Empty disables mail entirely — the
+# reports are still written to {{ wp_monitoring_dir }}/logs.
+wp_monitoring_alert_email: ""
+
+# Install gawk. The analysers need it for mktime() to filter a log by time
+# window; Ubuntu ships mawk, which has no mktime. Without gawk the scripts
+# still run but fall back to a cruder line-count estimate.
+wp_monitoring_install_gawk: true
+
+# --- Daily traffic report -------------------------------------------------
+wp_monitoring_traffic_enabled: true
+wp_monitoring_traffic_hours: 24
+wp_monitoring_traffic_cron_hour: "8"
+wp_monitoring_traffic_cron_minute: "0"
+wp_monitoring_traffic_retention_days: 30
+
+# --- Periodic security scan ----------------------------------------------
+wp_monitoring_security_enabled: true
+wp_monitoring_security_hours: 6
+# Flag any single IP that exceeds this many requests in the window.
+wp_monitoring_security_threshold: 100
+wp_monitoring_security_cron_hour: "*/6"
+wp_monitoring_security_cron_minute: "0"
+wp_monitoring_security_retention_days: 7
+
+# --- Weekly traffic summary ----------------------------------------------
+wp_monitoring_weekly_enabled: true
+wp_monitoring_weekly_hours: 168
+wp_monitoring_weekly_cron_hour: "9"
+wp_monitoring_weekly_cron_minute: "0"
+wp_monitoring_weekly_cron_weekday: "1"
+wp_monitoring_weekly_retention_days: 90

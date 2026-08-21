@@ -1,0 +1,72 @@
+---
+# One wrapper + one cron entry per site per report. The wrappers exist so
+# the cron line stays free of shell metacharacters: cron treats an
+# unescaped `%` as end-of-command, which silently truncates any job that
+# inlines `$(date +%Y-%m-%d)`.
+
+- name: Install daily traffic report wrapper
+  ansible.builtin.template:
+    src: daily-traffic-report.sh.j2
+    dest: "{{ wp_monitoring_dir }}/daily-traffic-report-{{ item.key }}.sh"
+    owner: "{{ web_user }}"
+    group: "{{ web_user }}"
+    mode: "0755"
+  become: true
+  loop: "{{ wp_monitoring_sites | dict2items }}"
+  when: wp_monitoring_traffic_enabled | bool
+
+- name: Schedule daily traffic report
+  ansible.builtin.cron:
+    name: "wp-monitoring daily traffic report for {{ item.key }}"
+    minute: "{{ wp_monitoring_traffic_cron_minute }}"
+    hour: "{{ wp_monitoring_traffic_cron_hour }}"
+    job: "{{ wp_monitoring_dir }}/daily-traffic-report-{{ item.key }}.sh"
+    user: "{{ web_user }}"
+    state: "{{ 'present' if wp_monitoring_traffic_enabled | bool else 'absent' }}"
+  become: true
+  loop: "{{ wp_monitoring_sites | dict2items }}"
+
+- name: Install security scan wrapper
+  ansible.builtin.template:
+    src: security-check.sh.j2
+    dest: "{{ wp_monitoring_dir }}/security-check-{{ item.key }}.sh"
+    owner: "{{ web_user }}"
+    group: "{{ web_user }}"
+    mode: "0755"
+  become: true
+  loop: "{{ wp_monitoring_sites | dict2items }}"
+  when: wp_monitoring_security_enabled | bool
+
+- name: Schedule security scan
+  ansible.builtin.cron:
+    name: "wp-monitoring security scan for {{ item.key }}"
+    minute: "{{ wp_monitoring_security_cron_minute }}"
+    hour: "{{ wp_monitoring_security_cron_hour }}"
+    job: "{{ wp_monitoring_dir }}/security-check-{{ item.key }}.sh"
+    user: "{{ web_user }}"
+    state: "{{ 'present' if wp_monitoring_security_enabled | bool else 'absent' }}"
+  become: true
+  loop: "{{ wp_monitoring_sites | dict2items }}"
+
+- name: Install weekly summary wrapper
+  ansible.builtin.template:
+    src: weekly-summary.sh.j2
+    dest: "{{ wp_monitoring_dir }}/weekly-summary-{{ item.key }}.sh"
+    owner: "{{ web_user }}"
+    group: "{{ web_user }}"
+    mode: "0755"
+  become: true
+  loop: "{{ wp_monitoring_sites | dict2items }}"
+  when: wp_monitoring_weekly_enabled | bool
+
+- name: Schedule weekly traffic summary
+  ansible.builtin.cron:
+    name: "wp-monitoring weekly traffic summary for {{ item.key }}"
+    minute: "{{ wp_monitoring_weekly_cron_minute }}"
+    hour: "{{ wp_monitoring_weekly_cron_hour }}"
+    weekday: "{{ wp_monitoring_weekly_cron_weekday }}"
+    job: "{{ wp_monitoring_dir }}/weekly-summary-{{ item.key }}.sh"
+    user: "{{ web_user }}"
+    state: "{{ 'present' if wp_monitoring_weekly_enabled | bool else 'absent' }}"
+  become: true
+  loop: "{{ wp_monitoring_sites | dict2items }}"

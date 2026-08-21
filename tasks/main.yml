@@ -1,0 +1,14 @@
+---
+- name: Install monitoring scripts
+  ansible.builtin.import_tasks: install.yml
+  tags:
+    - web
+    - wp-monitoring
+    - wp-monitoring-install
+
+- name: Schedule monitoring cron jobs
+  ansible.builtin.import_tasks: schedule.yml
+  tags:
+    - web
+    - wp-monitoring
+    - wp-monitoring-schedule

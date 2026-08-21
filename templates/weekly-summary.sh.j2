@@ -1,0 +1,24 @@
+#!/bin/bash
+# Weekly traffic summary for {{ item.key }} — managed by imagewize.trellis_wp_monitoring
+#
+# This exists as a wrapper rather than an inline cron command on purpose:
+# cron treats an unescaped `%` as end-of-command and pipes the remainder to
+# the job's stdin, so a crontab line containing $(date +%Y-%m-%d) is
+# silently truncated mid-word.
+set -euo pipefail
+
+MONITORING_DIR="{{ wp_monitoring_dir }}"
+LOG_FILE="{{ wp_monitoring_log_file }}"
+REPORT_FILE="$MONITORING_DIR/logs/weekly-summary-{{ item.key }}-$(date '+%Y-%m-%d').txt"
+
+"$MONITORING_DIR/traffic-monitor.sh" "$LOG_FILE" {{ wp_monitoring_weekly_hours }} > "$REPORT_FILE" 2>&1
+{%- if wp_monitoring_alert_email %}
+
+if command -v mail >/dev/null 2>&1; then
+    mail -s "[WEEKLY SUMMARY] {{ item.key }} - $(date '+%Y-%m-%d')" \
+        {{ wp_monitoring_alert_email }} < "$REPORT_FILE"
+fi
+{%- endif %}
+
+find "$MONITORING_DIR/logs" -name 'weekly-summary-{{ item.key }}-*.txt' \
+    -mtime +{{ wp_monitoring_weekly_retention_days }} -delete

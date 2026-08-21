@@ -1,0 +1,44 @@
+---
+name: CI
+
+'on':
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # The incumbent Trellis backup roles all rot quietly — a monthly build
+    # is what turns "last pushed 2022" into a known-good or a known-broken.
+    - cron: "0 6 1 * *"
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install linters
+        run: pip install ansible-core ansible-lint yamllint jinja2
+
+      - name: yamllint
+        run: yamllint .
+
+      - name: ansible-lint
+        run: ansible-lint
+
+      # files/ is synced from imagewize/wp-ops, which is its source of
+      # truth, so style findings there have to be fixed upstream rather than
+      # patched here. Gate on errors only; SC2034/SC2126 warnings in the
+      # analysers are known and tracked upstream.
+      - name: shellcheck the bundled analysers
+        run: shellcheck -S error files/*.sh
+
+      # The cron wrappers are Jinja, so shellcheck can't read them directly.
+      # Render each one with and without an alert email — the two branches
+      # produce different scripts — and check the output is valid bash.
+      - name: shellcheck the rendered cron wrappers
+        run: python3 scripts/render-templates.py --check

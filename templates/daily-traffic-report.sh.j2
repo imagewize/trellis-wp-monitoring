@@ -1,0 +1,19 @@
+#!/bin/bash
+# Daily traffic report for {{ item.key }} — managed by imagewize.trellis_wp_monitoring
+set -euo pipefail
+
+MONITORING_DIR="{{ wp_monitoring_dir }}"
+LOG_FILE="{{ wp_monitoring_log_file }}"
+REPORT_FILE="$MONITORING_DIR/logs/traffic-{{ item.key }}-$(date '+%Y-%m-%d').txt"
+
+"$MONITORING_DIR/traffic-monitor.sh" "$LOG_FILE" {{ wp_monitoring_traffic_hours }} > "$REPORT_FILE" 2>&1
+{%- if wp_monitoring_alert_email %}
+
+if command -v mail >/dev/null 2>&1; then
+    mail -s "[TRAFFIC REPORT] {{ item.key }} - $(date '+%Y-%m-%d')" \
+        {{ wp_monitoring_alert_email }} < "$REPORT_FILE"
+fi
+{%- endif %}
+
+find "$MONITORING_DIR/logs" -name 'traffic-{{ item.key }}-*.txt' \
+    -mtime +{{ wp_monitoring_traffic_retention_days }} -delete

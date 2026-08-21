@@ -1,0 +1,26 @@
+---
+galaxy_info:
+  role_name: trellis_wp_monitoring
+  namespace: imagewize
+  author: Imagewize
+  description: Nginx log traffic analysis and attack detection for Roots Trellis servers
+  license: MIT
+  # block/rescue, loop, and the modern cron module behaviour this role relies
+  # on. Declared honestly rather than copied from a role written in 2018 —
+  # nothing here has been tested below this.
+  min_ansible_version: "2.12"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+  galaxy_tags:
+    - trellis
+    - wordpress
+    - monitoring
+    - nginx
+    - security
+    - logs
+    - roots
+dependencies: []

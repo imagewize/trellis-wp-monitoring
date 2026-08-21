@@ -1,0 +1,27 @@
+#!/bin/bash
+# Security scan for {{ item.key }} — managed by imagewize.trellis_wp_monitoring
+set -euo pipefail
+
+MONITORING_DIR="{{ wp_monitoring_dir }}"
+LOG_FILE="{{ wp_monitoring_log_file }}"
+REPORT_FILE="$MONITORING_DIR/logs/security-{{ item.key }}-$(date '+%Y-%m-%d-%H%M').txt"
+
+"$MONITORING_DIR/security-monitor.sh" "$LOG_FILE" \
+    {{ wp_monitoring_security_hours }} {{ wp_monitoring_security_threshold }} > "$REPORT_FILE" 2>&1
+{%- if wp_monitoring_alert_email %}
+
+# Mail only when the scan actually flagged something, so a quiet week stays
+# quiet and the alerts keep meaning something.
+if grep -q '\[ALERT\]' "$REPORT_FILE"; then
+    if command -v mail >/dev/null 2>&1; then
+        # The format string must be quoted as one argument: an unquoted
+        # $(date +%Y-%m-%d %H:%M) passes %H:%M to date as a second operand,
+        # which errors out and leaves the subject truncated.
+        mail -s "[SECURITY ALERT] {{ item.key }} - $(date '+%Y-%m-%d %H:%M')" \
+            {{ wp_monitoring_alert_email }} < "$REPORT_FILE"
+    fi
+fi
+{%- endif %}
+
+find "$MONITORING_DIR/logs" -name 'security-{{ item.key }}-*.txt' \
+    -mtime +{{ wp_monitoring_security_retention_days }} -delete

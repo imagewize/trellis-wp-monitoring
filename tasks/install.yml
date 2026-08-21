@@ -1,0 +1,37 @@
+---
+# gawk, not mawk: the analysers use mktime() to cut a log to an N-hour
+# window, and Ubuntu's default mawk has no mktime. The scripts degrade to a
+# line-count estimate without it rather than failing, so this stays
+# optional — but the reports are much less accurate that way.
+- name: Install gawk for time-window log filtering
+  ansible.builtin.apt:
+    name: gawk
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: wp_monitoring_install_gawk | bool
+
+- name: Create monitoring directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ web_user }}"
+    group: "{{ web_user }}"
+    mode: "0755"
+  become: true
+  loop:
+    - "{{ wp_monitoring_dir }}"
+    - "{{ wp_monitoring_dir }}/logs"
+
+- name: Install log analysis scripts
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ wp_monitoring_dir }}/{{ item }}"
+    owner: "{{ web_user }}"
+    group: "{{ web_user }}"
+    mode: "0755"
+  become: true
+  loop:
+    - traffic-monitor.sh
+    - security-monitor.sh
